@@ -1,0 +1,13 @@
+# List of required libraries
+    # pip install -r requirements.txt
+
+Flask
+Flask-WTF
+Flask-SQLAlchemy
+Flask-Login
+WTForms
+email-validator
+Werkzeug
+Flask-SocketIO
+python-socketio
+eventlet

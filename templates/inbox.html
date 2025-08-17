@@ -1,0 +1,884 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Inbox
+{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #0FA4AF;
+        --primary-dark: #024950;
+        --primary-light: #AFDDE5;
+        --accent: #269af2;
+        --bg-dark: #0f0f13;
+        --bg-darker: #0a0a0d;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+    }
+
+    body {
+        background-color: var(--bg-dark);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text-primary);
+        overflow-x: hidden;
+        position: relative;
+        min-height: 100vh;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+
+    /* Sidebar styling */
+    .sidebar {
+        background: rgba(20, 20, 25, 0.7) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* Header styling */
+    .header {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary)) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Contact list items */
+    .contact-item {
+        transition: all 0.2s ease;
+        border-radius: 8px;
+    }
+
+    .contact-item:hover {
+        background: rgba(15, 164, 175, 0.15) !important;
+    }
+
+    .contact-item.active {
+        background: rgba(15, 164, 175, 0.25) !important;
+    }
+
+    /* Text colors */
+    .text-primary {
+        color: var(--text-primary) !important;
+    }
+
+    .text-secondary {
+        color: var(--text-secondary) !important;
+    }
+
+    /* Input styling */
+    input {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        color: var(--text-primary) !important;
+        outline: none !important;
+        transition: all 0.2s ease;
+    }
+
+    input:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 2px rgba(15, 164, 175, 0.2);
+    }
+
+    input::placeholder {
+        color: var(--text-secondary) !important;
+        opacity: 0.7;
+    }
+
+    /* Button styling */
+    button, [type="submit"] {
+        background: var(--primary) !important;
+        border: none !important;
+        color: white !important;
+        transition: all 0.2s ease !important;
+        font-weight: 500;
+        border-radius: 8px;
+    }
+
+    button:hover, [type="submit"]:hover {
+        background: var(--accent) !important;
+        transform: translateY(-1px);
+    }
+
+    button:active {
+        transform: translateY(0);
+    }
+
+    /* Modal styling */
+    #ratingModal > div {
+        background: rgba(20, 20, 25, 0.95) !important;
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border-radius: 12px;
+    }
+
+    /* Gradient circles background */
+    .gradient-circle {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.15;
+        z-index: -1;
+    }
+
+    .circle-1 {
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, var(--primary), transparent 70%);
+        top: -100px;
+        left: -100px;
+    }
+
+    .circle-2 {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, var(--primary-dark), transparent 70%);
+        bottom: -150px;
+        right: -150px;
+    }
+
+    .circle-3 {
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, var(--primary-light), transparent 70%);
+        top: 40%;
+        left: 30%;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 3px;
+    }
+
+    /* Message bubbles */
+    .message-bubble {
+        padding: 12px 16px;
+        margin: 8px 12px;
+        border-radius: 18px;
+        max-width: 70%;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        position: relative;
+        word-wrap: break-word;
+    }
+
+    .message-sent {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 6px;
+        margin-left: auto;
+    }
+
+    .message-received {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: var(--text-primary);
+        align-self: flex-start;
+        border-bottom-left-radius: 6px;
+    }
+
+    .message-timestamp {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        margin-top: 4px;
+        text-align: right;
+    }
+
+    .message-received .message-timestamp {
+        text-align: left;
+    }
+
+    /* Success message */
+    #successMessage {
+        background: var(--primary) !important;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Avatar styling */
+    .avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Typography */
+    h1, h2, h3 {
+        font-weight: 600;
+    }
+
+    /* Chat container */
+    .chat-container {
+        height: calc(100vh - 120px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Messages container */
+    #messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Input container */
+    .input-container {
+        background: rgba(20, 20, 25, 0.8);
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+    }
+
+    /* Rating stars */
+    .rating-star {
+        transition: all 0.2s ease;
+    }
+
+    .rating-star:hover {
+        transform: scale(1.1);
+    }
+
+    /* Status indicator */
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #10B981;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        border: 2px solid var(--bg-dark);
+    }
+
+    /* Loading indicator */
+    .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        color: var(--text-secondary);
+    }
+
+    /* Unread count badge */
+    .unread-badge {
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        min-width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Empty state */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-secondary);
+        text-align: center;
+        padding: 40px;
+    }
+
+    .empty-state svg {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+</style>
+
+<!-- Gradient Circles Background -->
+<div class="gradient-circle circle-1"></div>
+<div class="gradient-circle circle-2"></div>
+<div class="gradient-circle circle-3"></div>
+
+<div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <div class="w-1/4 sidebar">
+        <!-- Sidebar Header -->
+        <header class="p-4 border-b border-gray-800 flex justify-between items-center header">
+            <h1 class="text-xl font-semibold">Messages</h1>
+            <div class="text-sm text-secondary">Online</div>
+        </header>
+
+        <!-- Contact List -->
+        <div class="overflow-y-auto h-screen p-3 mb-9 pb-20">
+            {% for chat in chat_users %}
+            <div onclick="startChat('{{ chat.user.username }}', {{ chat.user.id }})" 
+                 class="flex items-center mb-3 contact-item p-3 rounded-md cursor-pointer" 
+                 data-user-id="{{ chat.user.id }}">
+                <div class="relative">
+                    <img src="https://placehold.co/200x/ffa8e4/ffffff.svg?text={{ chat.user.username|first|upper }}&font=Lato" 
+                         alt="User Avatar" class="avatar">
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="flex-1 ml-3">
+                    <p class="text-primary font-medium">{{ chat.user.username }}</p>
+                    <p class="text-secondary text-sm truncate">
+                        {% if chat.last_message %}
+                            {{ chat.last_message.content[:30] }}...
+                        {% else %}
+                            No messages yet
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="flex flex-col items-end">
+                    <div class="text-xs text-secondary mb-1">
+                        {% if chat.last_message %}
+                            {{ chat.last_message.timestamp.strftime('%H:%M') }}
+                        {% endif %}
+                    </div>
+                    {% if chat.unread_count > 0 %}
+                        <div class="unread-badge">{{ chat.unread_count }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="flex-1 w-3/4 flex flex-col bg-gray-900 rounded-r-xl overflow-hidden h-screen max-h-screen" id="chat-box" style="display:none;">
+        <!-- Chat Header - Fixed height -->
+        <header class="p-4 border-b border-gray-800 bg-gradient-to-r from-gray-850 to-gray-900 h-20 flex-shrink-0">
+            <div class="flex justify-between items-center h-full">
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <img src="https://placehold.co/200x/ffa8e4/ffffff.svg?text=U&font=Lato" 
+                            alt="User Avatar" class="w-10 h-10 rounded-full border-2 border-gray-700" id="chatAvatar">
+                        <div class="status-indicator"></div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div>
+                            <h1 class="text-lg font-semibold text-white">
+                                <span id="chatWith"></span>
+                            </h1>
+                            <p class="text-gray-400 text-sm">Online</p>
+                        </div>
+                        <button onclick="openRatingModal()" 
+                                class="ml-2 flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
+                                title="Rate this user">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div></div>
+            </div>
+        </header>
+
+        <!-- Messages Container - Scrollable area -->
+        <div class="flex-1 overflow-y-auto bg-gradient-to-b from-gray-850 to-gray-900">
+            <div id="messages" class="p-4 space-y-3 min-h-full"></div>
+        </div>
+
+        <!-- Input Area - Fixed height -->
+        <div class="border-t border-gray-800 bg-gray-800 p-4 h-20 flex-shrink-0">
+            <div class="flex items-center space-x-3 h-full">
+                <input type="text" id="msg" placeholder="Type a message..." 
+                    class="flex-1 bg-gray-700 border border-gray-600 text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-full">
+                <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center h-full aspect-square">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="flex-1 w-3/4 empty-state" id="empty-state">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+        <h3 class="text-xl font-semibold mb-2">Select a conversation</h3>
+        <p>Choose a contact from the sidebar to start chatting</p>
+    </div>
+</div>
+
+<!-- Rating Modal -->
+<div id="ratingModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50" style="display: none;">
+    <div class="rounded-lg shadow-xl p-6 w-96 max-w-md mx-4 border border-gray-800">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Rate User</h2>
+            <button onclick="closeRatingModal()" class="text-gray-500 hover:text-gray-300 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="mb-6">
+            <p class="text-secondary mb-4">Rate <span id="ratingUsername" class="font-semibold text-primary"></span>:</p>
+            
+            <!-- Star Rating -->
+            <div class="flex flex-col items-center">
+                <div class="flex space-x-2 mb-2">
+                    <button type="button" onclick="selectRating(1)" class="rating-star text-gray-500 hover:text-yellow-400 focus:outline-none" data-rating="1">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                    </button>
+                    <button type="button" onclick="selectRating(2)" class="rating-star text-gray-500 hover:text-yellow-400 focus:outline-none" data-rating="2">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                    </button>
+                    <button type="button" onclick="selectRating(3)" class="rating-star text-gray-500 hover:text-yellow-400 focus:outline-none" data-rating="3">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                    </button>
+                    <button type="button" onclick="selectRating(4)" class="rating-star text-gray-500 hover:text-yellow-400 focus:outline-none" data-rating="4">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                    </button>
+                    <button type="button" onclick="selectRating(5)" class="rating-star text-gray-500 hover:text-yellow-400 focus:outline-none" data-rating="5">
+                        <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <span id="ratingText" class="text-sm font-medium text-primary"></span>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="ratingError" class="text-red-400 text-sm mb-4 text-center" style="display: none;"></div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end space-x-3">
+            <button onclick="closeRatingModal()" class="px-4 py-2 border border-gray-700 rounded-md hover:bg-gray-800 focus:outline-none transition-colors">
+                Cancel
+            </button>
+            <button onclick="submitRating()" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-accent focus:outline-none transition-colors">
+                Submit Rating
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Message -->
+<div id="successMessage" class="fixed top-4 right-4 text-white px-4 py-3 rounded-md shadow-lg z-50 flex items-center" style="display: none;">
+    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span id="successText">Rating submitted successfully!</span>
+</div>
+
+<script>
+    const socket = io();
+    let room = '';
+    let chatWith = '';
+    let chatWithId = null;
+    let selectedRating = 0;
+    const currentUser = "{{ current_user.username }}";
+    const currentUserId = {{ current_user.id }};
+    const chatWithIdFromServer = {{ chat_with_id or 'null' }};
+    const chatUsers = {{ chat_users_json | tojson }};
+
+    function formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays}d ago`;
+        
+        return date.toLocaleDateString();
+    }
+
+    function startChat(user, userId) {
+        chatWith = user;
+        chatWithId = userId;
+        room = [user, currentUser].sort().join('_');
+
+        // Update UI
+        const chatHeader = document.getElementById('chatWith');
+        if (chatHeader) {
+            chatHeader.innerText = user;
+        }
+
+        // Update avatar in chat header
+        const chatAvatar = document.getElementById('chatAvatar');
+        if (chatAvatar) {
+            chatAvatar.src = `https://placehold.co/200x/ffa8e4/ffffff.svg?text=${user.charAt(0).toUpperCase()}&font=Lato`;
+        }
+
+        // Show/hide appropriate sections
+        document.getElementById('chat-box').style.display = 'flex';
+        document.getElementById('empty-state').style.display = 'none';
+        
+        // Update active contact
+        document.querySelectorAll('.contact-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        document.querySelector(`[data-user-id="${userId}"]`).classList.add('active');
+
+        // Clear messages container
+        document.getElementById('messages').innerHTML = '<div class="loading">Loading messages...</div>';
+        
+        // Join socket room
+        socket.emit('join_room', { room });
+        
+        // Load chat history from server
+        loadChatHistory();
+    }
+
+    function loadChatHistory() {
+        if (!chatWithId) return;
+
+        fetch(`/get-messages/${chatWithId}`)
+            .then(response => response.json())
+            .then(messages => {
+                const messagesContainer = document.getElementById('messages');
+                messagesContainer.innerHTML = '';
+
+                if (messages.length === 0) {
+                    messagesContainer.innerHTML = '<div class="empty-state"><p>No messages yet. Start the conversation!</p></div>';
+                    return;
+                }
+
+                messages.forEach(message => {
+                    addMessageToChat(message);
+                });
+                
+                // Scroll to bottom
+                scrollToBottom();
+            })
+            .catch(error => {
+                console.error('Error loading chat history:', error);
+                document.getElementById('messages').innerHTML = '<div class="empty-state"><p>Error loading messages. Please try again.</p></div>';
+            });
+    }
+
+    function addMessageToChat(messageData) {
+        const messagesContainer = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+        
+        const isSentByCurrentUser = messageData.sender_id === currentUserId;
+        const messageClass = isSentByCurrentUser ? 'message-sent' : 'message-received';
+        
+        messageDiv.className = `message-bubble ${messageClass}`;
+        
+        messageDiv.innerHTML = `
+            <div class="message-content">${escapeHtml(messageData.content)}</div>
+            <div class="message-timestamp">${formatTimestamp(messageData.timestamp)}</div>
+        `;
+        
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function scrollToBottom() {
+        const messagesContainer = document.getElementById('messages');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Socket.IO event handlers
+    socket.on('private_message', function(data) {
+        // Only add message if it's for the current chat
+        if ((data.sender_id === currentUserId && data.receiver_id === chatWithId) ||
+            (data.sender_id === chatWithId && data.receiver_id === currentUserId)) {
+            addMessageToChat(data);
+        }
+        
+        // Update unread count for other conversations
+        if (data.sender_id !== currentUserId && data.sender_id !== chatWithId) {
+            // This is a message from someone else not in current chat
+            updateContactPreview(data.sender_id, data.content, data.timestamp);
+        }
+    });
+
+
+    // Update contact preview with latest message
+    function updateContactPreview(userId, content, timestamp) {
+        const contactItem = document.querySelector(`[data-user-id="${userId}"]`);
+        if (contactItem) {
+            const previewElement = contactItem.querySelector('.text-secondary');
+            if (previewElement) {
+                previewElement.textContent = content.length > 30 ? content.substring(0, 30) + '...' : content;
+            }
+            
+            const timeElement = contactItem.querySelector('.text-xs');
+            if (timeElement) {
+                const date = new Date(timestamp);
+                timeElement.textContent = date.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            }
+            
+            // Move this contact to the top of the list
+            const sidebar = contactItem.parentElement;
+            sidebar.insertBefore(contactItem, sidebar.firstChild);
+        }
+    }
+
+    // Rating modal functions
+    function openRatingModal() {
+        if (!chatWith || !chatWithId) return;
+        
+        document.getElementById('ratingUsername').textContent = chatWith;
+        document.getElementById('ratingModal').style.display = 'flex';
+        selectedRating = 0;
+        updateRatingDisplay();
+    }
+
+    function closeRatingModal() {
+        document.getElementById('ratingModal').style.display = 'none';
+        document.getElementById('ratingError').style.display = 'none';
+        selectedRating = 0;
+        updateRatingDisplay();
+    }
+
+    function selectRating(rating) {
+        selectedRating = rating;
+        updateRatingDisplay();
+    }
+
+    function updateRatingDisplay() {
+        const stars = document.querySelectorAll('.rating-star');
+        const ratingText = document.getElementById('ratingText');
+        
+        stars.forEach((star, index) => {
+            const starRating = index + 1;
+            if (starRating <= selectedRating) {
+                star.classList.remove('text-gray-500');
+                star.classList.add('text-yellow-400');
+            } else {
+                star.classList.remove('text-yellow-400');
+                star.classList.add('text-gray-500');
+            }
+        });
+        
+        const ratingTexts = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+        ratingText.textContent = ratingTexts[selectedRating] || '';
+    }
+
+    function submitRating() {
+        if (selectedRating === 0) {
+            document.getElementById('ratingError').textContent = 'Please select a rating';
+            document.getElementById('ratingError').style.display = 'block';
+            return;
+        }
+        
+        fetch('/rate-user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: chatWithId,
+                score: selectedRating
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('ratingError').textContent = data.error;
+                document.getElementById('ratingError').style.display = 'block';
+            } else {
+                closeRatingModal();
+                showSuccessMessage('Rating submitted successfully!');
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting rating:', error);
+            document.getElementById('ratingError').textContent = 'Error submitting rating';
+            document.getElementById('ratingError').style.display = 'block';
+        });
+    }
+
+    function showSuccessMessage(message) {
+        const successDiv = document.getElementById('successMessage');
+        const successText = document.getElementById('successText');
+        
+        successText.textContent = message;
+        successDiv.style.display = 'flex';
+        
+        setTimeout(() => {
+            successDiv.style.display = 'none';
+        }, 3000);
+    }
+
+    // Initialize chat if there's a chat_with_id from the server
+    if (chatWithIdFromServer) {
+        const targetUser = chatUsers.find(u => u.id === chatWithIdFromServer);
+        if (targetUser) {
+            startChat(targetUser.username, targetUser.id);
+        }
+    }
+
+    // Add message to chat (updated to handle receiver_id)
+    function addMessageToChat(messageData) {
+        const messagesContainer = document.getElementById('messages');
+        
+        // Remove loading message if it exists
+        const loadingMsg = messagesContainer.querySelector('.loading');
+        if (loadingMsg) {
+            loadingMsg.remove();
+        }
+        
+        // Remove empty state if it exists
+        const emptyState = messagesContainer.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+        
+        const messageDiv = document.createElement('div');
+        const isSentByCurrentUser = messageData.sender_id === currentUserId;
+        const messageClass = isSentByCurrentUser ? 'message-sent' : 'message-received';
+        
+        messageDiv.className = `message-bubble ${messageClass}`;
+        
+        messageDiv.innerHTML = `
+            <div class="message-content">${escapeHtml(messageData.content)}</div>
+            <div class="message-timestamp">${formatTimestamp(messageData.timestamp)}</div>
+        `;
+        
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+        
+        // Mark as read if it's a received message and we're in the chat
+        if (!isSentByCurrentUser && chatWithId === messageData.sender_id) {
+            markMessagesAsRead(messageData.sender_id);
+        }
+    }
+
+
+    // Mark messages as read
+    function markMessagesAsRead(senderId) {
+        fetch(`/mark-messages-read/${senderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        }).catch(error => {
+            console.error('Error marking messages as read:', error);
+        });
+    }
+
+    // Add visual feedback for sending messages
+    function addPendingMessage(content) {
+        const messagesContainer = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+        
+        messageDiv.className = 'message-bubble message-sent pending';
+        messageDiv.innerHTML = `
+            <div class="message-content">${escapeHtml(content)}</div>
+            <div class="message-timestamp">Sending...</div>
+        `;
+        
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+        
+        return messageDiv;
+    }
+
+    // Update send message to show pending state
+    function sendMessage() {
+        const messageInput = document.getElementById('msg');
+        const message = messageInput.value.trim();
+        
+        if (!message || !chatWithId) return;
+        
+        // Add pending message
+        const pendingMsg = addPendingMessage(message);
+        messageInput.value = '';
+        
+        // Send via REST API for persistence
+        fetch('/send-message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                receiver_id: chatWithId,
+                content: message
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error sending message:', data.error);
+                pendingMsg.remove();
+            } else {
+                // Remove pending message - the real message will come via Socket.IO
+                pendingMsg.remove();
+                messageInput.focus();
+            }
+        })
+        .catch(error => {
+            console.error('Error sending message:', error);
+            pendingMsg.remove();
+        });
+    }
+
+
+    // Add CSS for pending messages
+    const pendingStyle = document.createElement('style');
+    pendingStyle.textContent = `
+        .message-bubble.pending {
+            opacity: 0.7;
+        }
+        .message-bubble.pending .message-timestamp {
+            font-style: italic;
+        }
+    `;
+    document.head.appendChild(pendingStyle);
+    
+    // Also add Enter key support for sending messages
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageInput = document.getElementById('msg');
+        if (messageInput) {
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+    });
+
+</script>
+{% endblock %}

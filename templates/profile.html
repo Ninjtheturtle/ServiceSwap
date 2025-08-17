@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Profile
+{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #0FA4AF;
+        --primary-dark: #024950;
+        --primary-light: #AFDDE5;
+        --accent: #269af2;
+        --bg-dark: #0f0f13;
+        --bg-darker: #0a0a0d;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+    }
+
+    body {
+        background-color: var(--bg-dark);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text-primary);
+        overflow-x: hidden;
+        position: relative;
+        min-height: 100vh;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Main container styling */
+    .profile-container {
+        background-color: rgba(15, 15, 20, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        margin: 2rem auto;
+        padding: 2rem;
+        max-width: 800px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Gradient circles background */
+    .gradient-circle {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.15;
+        z-index: -1;
+    }
+
+    .circle-1 {
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, var(--primary), transparent 70%);
+        top: -100px;
+        left: -100px;
+    }
+
+    .circle-2 {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, var(--primary-dark), transparent 70%);
+        bottom: -150px;
+        right: -150px;
+    }
+
+    .circle-3 {
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, var(--primary-light), transparent 70%);
+        top: 40%;
+        left: 30%;
+    }
+
+    /* Form elements */
+    input, textarea {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        color: var(--text-primary) !important;
+        outline: none !important;
+        transition: all 0.2s ease;
+        padding: 0.75rem 1rem;
+        width: 100%;
+    }
+
+    input:focus, textarea:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 2px rgba(15, 164, 175, 0.2);
+    }
+
+    input::placeholder, textarea::placeholder {
+        color: var(--text-secondary) !important;
+        opacity: 0.7;
+    }
+
+    /* Button styling */
+    button, [type="submit"] {
+        background: var(--primary) !important;
+        border: none !important;
+        color: white !important;
+        transition: all 0.2s ease !important;
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+    }
+
+    button:hover, [type="submit"]:hover {
+        background: var(--accent) !important;
+        transform: translateY(-1px);
+    }
+
+    button:active {
+        transform: translateY(0);
+    }
+
+    /* Profile picture */
+    .profile-picture {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--primary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Labels */
+    label {
+        color: var(--text-primary);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    /* Rating stars */
+    .rating-star {
+        color: #FFD700;
+    }
+
+    /* Add qualification button */
+    .add-qualification {
+        color: var(--primary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .add-qualification:hover {
+        color: var(--accent);
+        text-decoration: underline;
+    }
+
+    /* Change picture button */
+    .change-picture-btn {
+        background: rgba(15, 164, 175, 0.2);
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        transition: all 0.2s ease;
+    }
+
+    .change-picture-btn:hover {
+        background: rgba(15, 164, 175, 0.3);
+        color: var(--text-primary);
+    }
+
+    /* Header */
+    .profile-header {
+        color: var(--text-primary);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 3px;
+    }
+</style>
+
+<!-- Gradient Circles Background -->
+<div class="gradient-circle circle-1"></div>
+<div class="gradient-circle circle-2"></div>
+<div class="gradient-circle circle-3"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="profile-container">
+        <form class="space-y-6" method="POST" enctype="multipart/form-data">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 profile-header">
+                <div>
+                    <h1 class="text-3xl font-bold text-primary">Update Profile</h1>
+                    <p class="text-secondary">Manage your profile information</p>
+                </div>
+                
+                {% if avg_rating %}
+                    <div class="flex items-center mt-4 md:mt-0">
+                        <div class="rating-star flex mr-2">
+                            {% for i in range(5) %}
+                                {% if i < avg_rating|int %}
+                                    <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-5 h-5 fill-current text-gray-500" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                    </svg>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="text-primary font-medium">{{ avg_rating }}/5</span>
+                    </div>
+                {% else %}
+                    <div class="text-secondary italic mt-4 md:mt-0">
+                        No ratings yet
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="w-full md:w-1/3 flex flex-col items-center">
+                    <div class="relative mb-4">
+                        <img src="{{ url_for('static', filename=user.profile_picture or 'imgs/user.png') }}"
+                            alt="Profile Picture"
+                            class="profile-picture"
+                            id="profilePreview">
+                    </div>
+
+                    <input type="file" name="profile" id="upload_profile" hidden onchange="previewProfile(this)">
+                    <label for="upload_profile" class="change-picture-btn px-4 py-2 rounded-lg cursor-pointer flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Change Picture
+                    </label>
+                </div>
+
+                <div class="w-full md:w-2/3 space-y-6">
+                    <!-- Username -->
+                    <div>
+                        <label for="username">Username</label>
+                        <input type="text" name="username" id="username" value="{{ user.username }}">
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email">Email</label>
+                        <input type="email" name="email" id="email" value="{{ user.email }}">
+                    </div>
+
+                    <!-- Bio -->
+                    <div>
+                        <label for="bio">Bio</label>
+                        <textarea name="bio" id="bio" rows="3">{{ user.bio }}</textarea>
+                    </div>
+
+                    <!-- Qualifications -->
+                    <div>
+                        <label>Qualifications</label>
+                        <div id="qualifications-list" class="space-y-3">
+                            {% for q in user.qualifications %}
+                            <input type="text" name="qualification" class="qualification-input" value="{{ q }}">
+                            {% endfor %}
+                            <input type="text" name="qualification" class="qualification-input" placeholder="e.g., B.Sc. in Computer Science">
+                        </div>
+                        <button type="button" onclick="addQualification()" class="add-qualification mt-2 text-sm">
+                            + Add another qualification
+                        </button>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" class="px-6 py-2">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function addQualification() {
+        const container = document.getElementById('qualifications-list');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'qualification';
+        input.placeholder = 'e.g., M.A. in Education';
+        input.className = 'qualification-input';
+        container.appendChild(input);
+    }
+
+    function previewProfile(input) {
+        const preview = document.getElementById("profilePreview");
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => preview.src = e.target.result;
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

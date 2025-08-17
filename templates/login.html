@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% from "_render_elements.html" import render_field %}
+
+{% block title %}
+Log In
+{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(to top, #003135, #024950);
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+        overflow: hidden;
+        position: relative;
+        min-height: 100vh;
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    form {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 2rem;
+        border-radius: 1rem;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 0 30px rgba(15, 164, 175, 0.35);
+        max-width: 420px;
+        margin: 4rem auto;
+        z-index: 2;
+        position: relative;
+    }
+
+    form input[type="text"],
+    form input[type="password"] {
+        width: 100%;
+        padding: 12px;
+        margin: 0.5rem 0;
+        background: rgba(15, 164, 175, 0.15);
+        border: 1px solid #0FA4AF;
+        border-radius: 8px;
+        color: white;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    form input[type="text"]::placeholder,
+    form input[type="password"]::placeholder {
+        color: #AFDDE5;
+    }
+
+    form input[type="submit"] {
+        background: #0FA4AF;
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        margin-top: 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    form input[type="submit"]:hover {
+        background: #269af2;
+    }
+
+    a {
+        color: #AFDDE5;
+        text-decoration: underline;
+        display: block;
+        margin-top: 1rem;
+        text-align: center;
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Custom Cloud Style */
+    .cloud {
+        height: 180px;
+        aspect-ratio: 1.8;
+        position: absolute;
+        opacity: 0.25;
+        --g: radial-gradient(50% 50%, #000 98%, #0000) no-repeat;
+        mask: var(--g) 100% 100%/30% 60%, var(--g) 70% 0/50% 100%, var(--g) 0 100%/36% 68%, var(--g) 27% 18%/26% 40%, linear-gradient(#000 0 0) bottom/67% 58% no-repeat;
+        background: #0FA4AF;
+        animation: floatClouds linear infinite;
+        z-index: 0;
+    }
+
+    .cloud.one {
+        top: 5%;
+        left: -20%;
+        transform: scale(1.2);
+        animation-duration: 80s;
+    }
+
+    .cloud.two {
+        top: 28%;
+        left: -30%;
+        transform: scale(0.9);
+        background: #AFDDE5;
+        animation-duration: 65s;
+    }
+
+    .cloud.three {
+        top: 55%;
+        left: -35%;
+        transform: scale(1.4);
+        background: #024950;
+        animation-duration: 100s;
+    }
+
+    .cloud.four {
+        top: 75%;
+        left: -50%;
+        transform: scale(1);
+        background: #0FA4AF;
+        animation-duration: 70s;
+    }
+
+    .cloud.five {
+        top: 15%;
+        left: -40%;
+        transform: scale(0.8);
+        background: #AFDDE5;
+        animation-duration: 90s;
+    }
+
+    @keyframes floatClouds {
+        0% { transform: translateX(0) scale(var(--scale, 1)); }
+        100% { transform: translateX(160vw) scale(var(--scale, 1)); }
+    }
+</style>
+
+<!-- Clouds -->
+<div class="cloud one"></div>
+<div class="cloud two"></div>
+<div class="cloud three"></div>
+<div class="cloud four"></div>
+<div class="cloud five"></div>
+
+<h1>Log In</h1>
+<form method="post" action="{{ url_for('login') }}">
+    {{ form.csrf_token }}
+    {{ render_field(form.username) }}
+    {{ render_field(form.password) }}
+    <p>{{ form.remember }} {{ form.remember.label }}</p>
+    {{ form.submit }}
+    <a href="/signup">Don't have an account? Sign Up!</a>
+</form>
+{% endblock %}

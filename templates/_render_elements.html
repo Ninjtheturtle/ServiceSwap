@@ -1,0 +1,24 @@
+{% macro render_field(field) %}
+<p>{{ field.label }} : {{ field(**kwargs)|safe }}</p>
+{% if field.errors %}
+<ul>
+    {% for error in field.errors %}
+    <li style="color:red;">{{ error }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endmacro %}
+
+{% macro render_messages(messages) %}
+{% with messages = get_flashed_messages(messages) %}
+  {% if messages %}
+    <div class="fixed top-4 right-4 z-50 space-y-2">
+      {% for message in messages %}
+        <div class="bg-[#003135] text-white px-4 py-2 rounded shadow-lg text-sm font-semibold">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+{% endmacro %}

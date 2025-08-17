@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}Listings{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #0FA4AF;
+        --primary-dark: #024950;
+        --primary-light: #AFDDE5;
+        --accent: #269af2;
+        --bg-dark: #0f0f13;
+        --bg-darker: #0a0a0d;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+    }
+
+    body {
+        background-color: var(--bg-dark);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text-primary);
+        overflow-x: hidden;
+        position: relative;
+        min-height: 100vh;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Gradient circles background */
+    .gradient-circle {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.15;
+        z-index: -1;
+    }
+
+    .circle-1 {
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, var(--primary), transparent 70%);
+        top: -100px;
+        left: -100px;
+    }
+
+    .circle-2 {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, var(--primary-dark), transparent 70%);
+        bottom: -150px;
+        right: -150px;
+    }
+
+    .circle-3 {
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, var(--primary-light), transparent 70%);
+        top: 40%;
+        left: 30%;
+    }
+
+    /* Listing cards */
+    .listing-card {
+        background: rgba(20, 20, 25, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .listing-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        border-color: rgba(15, 164, 175, 0.3);
+    }
+
+    /* Buttons */
+    .btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: var(--accent);
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        background: #E53E3E;
+    }
+
+    .btn-danger:hover {
+        background: #C53030;
+    }
+
+    .btn-success {
+        background: #38A169;
+    }
+
+    .btn-success:hover {
+        background: #2F855A;
+    }
+
+    /* Popup modals */
+    .modal {
+        background: rgba(20, 20, 25, 0.95);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Input fields */
+    input, textarea {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        color: var(--text-primary) !important;
+        outline: none !important;
+        transition: all 0.2s ease;
+        padding: 0.75rem 1rem;
+        width: 100%;
+    }
+
+    input:focus, textarea:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 2px rgba(15, 164, 175, 0.2);
+    }
+
+    input::placeholder, textarea::placeholder {
+        color: var(--text-secondary) !important;
+        opacity: 0.7;
+    }
+
+    /* Add button */
+    .add-btn {
+        background: var(--primary);
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease;
+    }
+
+    .add-btn:hover {
+        background: var(--accent);
+        transform: scale(1.1);
+    }
+
+    /* Avatar */
+    .avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--primary);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 3px;
+    }
+</style>
+
+<!-- Gradient Circles Background -->
+<div class="gradient-circle circle-1"></div>
+<div class="gradient-circle circle-2"></div>
+<div class="gradient-circle circle-3"></div>
+
+<div class="container mx-auto px-4 py-8 relative">
+    <h1 class="text-3xl font-bold mb-8 text-primary">Your Listings</h1>
+  
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for listing in listings %}
+        <div class="listing-card p-5">
+            <!-- Edit Button -->
+            <button
+                onclick="openEditPopup({{ listing.id }}, `{{ listing.description|escape }}`)"
+                class="btn absolute top-4 right-4 text-sm"
+            >
+                ✏️ Edit
+            </button>
+            
+            <!-- Profile Picture & Info -->
+            <div class="flex items-center gap-4 mb-5">
+                <img src="{{ url_for('static', filename=listing.user.profile_picture or 'imgs/user.png') }}"
+                    alt="Profile" class="avatar" />
+                <div>
+                    <p class="text-lg font-bold text-primary">{{ listing.user.username }}</p>
+                    <p class="text-secondary text-sm">Ontario, Canada</p>
+                </div>
+            </div>
+
+            <!-- Uploaded Image -->
+            {% if listing.image_path %}
+            <img src="{{ url_for('static', filename=listing.image_path) }}"
+                alt="Service Image"
+                class="w-full h-48 object-cover rounded-lg mb-4 bg-gray-800" />
+            {% endif %}
+
+            <!-- Description -->
+            <p class="text-secondary text-base line-clamp-3">
+                {{ listing.description }}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sticky Add Button -->
+    <button
+        onclick="document.getElementById('add-popup').classList.remove('hidden')"
+        class="add-btn fixed bottom-8 right-8 z-50"
+    >
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+    </button>
+
+    <!-- Add Popup -->
+    <div id="add-popup" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal w-full max-w-md p-6">
+            <button
+                onclick="document.getElementById('add-popup').classList.add('hidden')"
+                class="absolute top-4 right-4 text-secondary hover:text-primary"
+            >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h3 class="text-2xl font-bold mb-6 text-center text-primary">Add a service request</h3>
+            
+            <form method="POST" action="/add-listing" enctype="multipart/form-data">
+                <label class="block mb-2 text-sm font-medium text-secondary">Upload Image:</label>
+                <input type="file" name="image" accept="image/*" class="mb-5" />
+
+                <label class="block mb-2 text-sm font-medium text-secondary">Description:</label>
+                <textarea
+                    name="description"
+                    rows="4"
+                    placeholder="e.g. Need help moving a couch..."
+                    class="w-full mb-6"
+                    required
+                ></textarea>
+                
+                <div class="flex justify-end">
+                    <button type="submit" class="btn">
+                        Done
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Popup -->
+    <div id="edit-popup" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal w-full max-w-md p-6">
+            <button
+                onclick="document.getElementById('edit-popup').classList.add('hidden')"
+                class="absolute top-4 right-4 text-secondary hover:text-primary"
+            >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <h3 class="text-2xl font-bold mb-6 text-center text-primary">Edit your listing</h3>
+
+            <!-- EDIT FORM -->
+            <form method="POST" id="edit-form">
+                <textarea
+                    name="description"
+                    id="edit-description"
+                    rows="6"
+                    class="w-full mb-6"
+                    required
+                ></textarea>
+                
+                <div class="flex justify-between">
+                    <button
+                        type="button"
+                        onclick="submitDeleteForm()"
+                        class="btn btn-danger"
+                    >
+                        Delete Listing
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        Save
+                    </button>
+                </div>
+            </form>
+
+            <!-- HIDDEN DELETE FORM -->
+            <form id="delete-form" method="POST" style="display: none;"></form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEditPopup(id, description) {
+        const form = document.getElementById("edit-form");
+        const descField = document.getElementById("edit-description");
+        const deleteForm = document.getElementById("delete-form");
+
+        descField.value = description;
+        form.action = `/edit-listing/${id}`;
+        deleteForm.action = `/delete-listing/${id}`;
+        document.getElementById("edit-popup").classList.remove("hidden");
+    }
+
+    function submitDeleteForm() {
+        document.getElementById("delete-form").submit();
+    }
+</script>
+
+{% endblock %}

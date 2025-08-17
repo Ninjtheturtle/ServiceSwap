@@ -1,0 +1,78 @@
+{% from "_render_elements.html" import render_messages %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imgs/favicon.ico') }}" />
+    <title>{% block title %}{% endblock %}</title>
+
+    <!-- ✅ Tailwind CSS CDN (required for formatting to work) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ✅ Optional: Your custom CSS (still works on top of Tailwind) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
+</head>
+<body class="bg-gray-900 text-white">
+    <style>
+        :root {
+            --primary: #0FA4AF;
+            --primary-dark: #024950;
+            --primary-light: #AFDDE5;
+            --accent: #269af2;
+            --bg-dark: #0f0f13;
+            --bg-darker: #0a0a0d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        #flex {
+            background-color: rgba(15, 15, 20, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            margin: 1rem;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+    
+    <!-- ✅ Navbar (only shows when user is logged in) -->
+    <!-- In base.html, replace the navbar section with this: -->
+    {% if current_user.is_authenticated %}
+    <nav class="shadow-lg px-6 py-4 flex justify-between items-center z-10 relative" id="flex">
+        <!-- Logo -->
+        <div class="text-2xl font-bold text-teal-400">
+            <a href="/">ServiceSwap</a>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="flex gap-4 items-center">
+            <a href="/profile" class="text-white hover:text-teal-300 transition">Profile</a>
+            <a href="/listings" class="text-white hover:text-teal-300 transition">My Listings</a>
+            <a href="/inbox" class="text-white hover:text-teal-300 transition">Direct Messages</a>
+            <a href="/logout" class="ml-4 bg-teal-500 hover:bg-teal-400 text-white font-semibold px-4 py-2 rounded transition">
+                Log Out
+            </a>
+        </div>
+    </nav>
+    {% endif %}
+
+    {{ render_messages(messages) }}
+
+    {% block content %}
+    {% endblock %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
